@@ -31,5 +31,3 @@ jobs:
         run: zig build check --summary all -Dtarget=${{matrix.targets}} -freference-trace=25
       - name: Test
         run: zig build test --summary all
-
-
