@@ -82,6 +82,7 @@ jobs:
           chmod +x ./kalpack
           echo '{"repository_dir": "", "index_db": "", "bin_dir": ""}' > config.json
       - name: Update index
+        id: update-index
         run: |
           version="${{ needs.build.outputs.version }}"
           commit="${{forge.sha}}"
@@ -100,6 +101,7 @@ jobs:
           file="$pkg_type/$package_name.yml"
           sed -E -i "s/version: .*/version: $pkg_version/" "$file"
           echo "Updated '$package_name@$pkg_type' to $pkg_version"
+          echo "commit=[ci] Bump package '$package_name' in repo '$pkg_type' to '$pkg_version'" >> $FORGEJO_OUTPUT
       - name: Push to repo
         run: |
           git config user.name "forgekal-actions[bot]"
@@ -107,4 +109,5 @@ jobs:
           ./kalpack lock dev.yaml
           ./kalpack lock stable.yaml
           git add dev stable stable.kpkg.lock dev.kpkg.lock
+          git commit -m "${{ steps.update-index.outputs.commit }}"
           git push origin master
