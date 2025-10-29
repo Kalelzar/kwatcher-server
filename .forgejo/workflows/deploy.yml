@@ -75,9 +75,10 @@ jobs:
           token: ${{secrets.PUSH_TOKEN}}
       - name: Download kalpack
         run: |
+          version="0.1.4+6ebdba88eddae559331ff246cfbb60e6f3ce8518"
           curl \
              -u kalelzar:${{secrets.TOKEN}} \
-             -OJ https://git.kalelzar.xyz/api/packages/kalelzar/generic/kalpack/0.1.3+9b8cbe01402277b626f48c3ec5711aa451467881/kalpack-aarch64-linux-musl.tar.xz
+             -OJ "https://git.kalelzar.xyz/api/packages/kalelzar/generic/kalpack/$version/kalpack-aarch64-linux-musl.tar.xz"
           tar -xf kalpack-aarch64-linux-musl.tar.xz
           chmod +x ./kalpack
           echo '{"repository_dir": "", "index_db": "", "bin_dir": ""}' > config.json
