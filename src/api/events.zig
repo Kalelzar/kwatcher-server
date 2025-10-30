@@ -4,16 +4,21 @@ const tk = @import("tokamak");
 const zmpl = @import("zmpl");
 const metrics = @import("../metrics.zig");
 
-const Cursor = @import("kwatcher-event").models.Cursor;
+const models = @import("kwatcher-event").models;
 
 const EventService = @import("../service/events.zig");
 const model = @import("../model.zig");
 const template = @import("../template.zig");
 
-pub fn @"GET /get?"(res: *tk.Response, tdata: template.Data, event_service: *EventService, cursor: Cursor) !template.Template {
+pub fn @"GET /get?"(
+    res: *tk.Response,
+    tdata: template.Data,
+    event_service: *EventService,
+    query: models.PaginatedEventsQuery,
+) !template.Template {
     var instr = metrics.instrumentAllocator(res.arena);
     const alloc = instr.allocator();
-    const rows = try event_service.get(alloc, cursor);
+    const rows = try event_service.get(alloc, query);
     var data = tdata.data;
     const root = try data.object();
     const events = try data.array();
@@ -28,12 +33,32 @@ pub fn @"GET /get?"(res: *tk.Response, tdata: template.Data, event_service: *Eve
         try obj.put("data", event.properties);
         try events.append(obj);
     }
-    try root.put("index", cursor.drop + @min(rows.items.len, cursor.take));
-    try root.put("is_at_end", rows.items.len < cursor.take);
+    try root.put("index", query.drop + @min(rows.items.len, query.take));
+    try root.put("is_at_end", rows.items.len < query.take);
     return template.Template.init("list_events");
+}
+
+pub fn @"GET /types"(res: *tk.Response, tdata: template.Data, event_service: *EventService) !template.Template {
+    var instr = metrics.instrumentAllocator(res.arena);
+    const alloc = instr.allocator();
+    const rows = try event_service.types(alloc);
+    var data = tdata.data;
+    const root = try data.object();
+    const types = try data.array();
+    try root.put("types", types);
+    for (rows.items) |event| {
+        try types.append(event);
+    }
+    res.headers.add("cache-control", "public, max-age=60");
+    return template.Template.init("list_types");
 }
 
 pub fn @"GET /"(data: template.Data) !template.Template {
     _ = try data.data.object();
     return template.Template.init("event");
+}
+
+pub fn @"GET /table"(data: template.Data) !template.Template {
+    _ = try data.data.object();
+    return template.Template.init("event_table");
 }
