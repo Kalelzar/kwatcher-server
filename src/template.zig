@@ -1,4 +1,5 @@
 const std = @import("std");
+const builtin = @import("builtin");
 const zmpl = @import("zmpl");
 const tk = @import("tokamak");
 const metrics = @import("metrics.zig");
@@ -34,7 +35,9 @@ pub const Template = struct {
             if (std.mem.eql(u8, accept, "application/json")) {
                 const body = try data.toJson();
                 context.res.header("content-type", "applicaton/json");
-                context.res.header("cache-control", "no-cache, no-store, must-revalidate");
+                if (context.res.headers.get("cache-control") == null) {
+                    context.res.header("cache-control", "no-cache, no-store, must-revalidate");
+                }
                 context.res.body = try alloc.dupe(u8, body);
             } else {
                 const body = try self.template.render(
@@ -45,7 +48,9 @@ pub const Template = struct {
                     .{},
                 );
                 context.res.header("content-type", "text/html");
-                context.res.header("cache-control", "no-cache, no-store, must-revalidate");
+                if (context.res.headers.get("cache-control") == null) {
+                    context.res.header("cache-control", "no-cache, no-store, must-revalidate");
+                }
                 context.res.body = try alloc.dupe(u8, body);
             }
         }
@@ -62,8 +67,13 @@ pub fn templates(children: []const tk.Route) tk.Route {
             defer data.deinit();
 
             const my_data = Data{ .data = &data };
-
-            return context.nextScoped(&.{my_data});
+            return context.nextScoped(&.{my_data}) catch |e| {
+                const stacktrace = @errorReturnTrace();
+                if (stacktrace) |tr| {
+                    std.debug.dumpStackTrace(tr.*);
+                }
+                return e;
+            };
         }
     };
     return .{

@@ -8,15 +8,7 @@ const KEventRepo = @import("kwatcher-event").repo.KEvent;
 const Config = @import("config.zig").Config;
 const builtin = @import("builtin");
 
-fn dumpInj(inj: *tk.Injector) void {
-    std.debug.print("Contents:\n", .{});
-    for (inj.refs) |ref| {
-        std.debug.print("  {s} (const? {}): {any}\n", .{ ref.tid.name, ref.is_const, ref.ptr });
-    }
-}
-
 fn notFound(context: *tk.Context, inj: *tk.Injector) !kserver.template.Template {
-    dumpInj(inj);
     var data = try inj.get(kserver.template.Data);
     _ = try data.data.object();
     context.res.status = 404;
