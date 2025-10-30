@@ -38,6 +38,33 @@ pub fn @"GET /get?"(
     return template.Template.init("list_events");
 }
 
+pub fn @"GET /recent"(
+    res: *tk.Response,
+    tdata: template.Data,
+    event_service: *EventService,
+) !template.Template {
+    var instr = metrics.instrumentAllocator(res.arena);
+    const alloc = instr.allocator();
+    const rows = try event_service.recent(alloc);
+    var data = tdata.data;
+    const root = try data.object();
+    const events = try data.array();
+    try root.put("events", events);
+    for (rows.items) |event| {
+        const obj = try data.object();
+        try obj.put("event_type", event.event_type);
+        try obj.put("from", event.start_time);
+        try obj.put("to", event.end_time);
+        try obj.put("duration", event.end_time - event.start_time);
+        try obj.put("user_id", event.user_id);
+        try obj.put("data", event.properties);
+        try events.append(obj);
+    }
+    try root.put("index", 0);
+    try root.put("is_at_end", true);
+    return template.Template.init("list_events");
+}
+
 pub fn @"GET /types"(res: *tk.Response, tdata: template.Data, event_service: *EventService) !template.Template {
     var instr = metrics.instrumentAllocator(res.arena);
     const alloc = instr.allocator();
@@ -45,12 +72,42 @@ pub fn @"GET /types"(res: *tk.Response, tdata: template.Data, event_service: *Ev
     var data = tdata.data;
     const root = try data.object();
     const types = try data.array();
-    try root.put("types", types);
+    try root.put("options", types);
     for (rows.items) |event| {
         try types.append(event);
     }
     res.headers.add("cache-control", "public, max-age=60");
-    return template.Template.init("list_types");
+    return template.Template.init("list_options");
+}
+
+pub fn @"GET /clients"(res: *tk.Response, tdata: template.Data, event_service: *EventService) !template.Template {
+    var instr = metrics.instrumentAllocator(res.arena);
+    const alloc = instr.allocator();
+    const rows = try event_service.clients(alloc);
+    var data = tdata.data;
+    const root = try data.object();
+    const clients = try data.array();
+    try root.put("options", clients);
+    for (rows.items) |event| {
+        try clients.append(event);
+    }
+    res.headers.add("cache-control", "public, max-age=300");
+    return template.Template.init("list_options");
+}
+
+pub fn @"GET /hosts"(res: *tk.Response, tdata: template.Data, event_service: *EventService) !template.Template {
+    var instr = metrics.instrumentAllocator(res.arena);
+    const alloc = instr.allocator();
+    const rows = try event_service.hosts(alloc);
+    var data = tdata.data;
+    const root = try data.object();
+    const hosts = try data.array();
+    try root.put("options", hosts);
+    for (rows.items) |event| {
+        try hosts.append(event);
+    }
+    res.headers.add("cache-control", "public, max-age=300");
+    return template.Template.init("list_options");
 }
 
 pub fn @"GET /"(data: template.Data) !template.Template {

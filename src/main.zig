@@ -5,6 +5,7 @@ const pg = @import("pg");
 const kwatcher = @import("kwatcher");
 const kserver = @import("kwatcher-server");
 const KEventRepo = @import("kwatcher-event").repo.KEvent;
+const KClientRepo = @import("kwatcher-event").repo.KClient;
 const Config = @import("config.zig").Config;
 const builtin = @import("builtin");
 
@@ -38,11 +39,16 @@ const App = struct {
     pub fn configure(bundle: *tk.Bundle) void {
         bundle.add(tk.ServerOptions, .factory(serverOptionsFactory));
         bundle.add(KEventRepo.FromPool, .factory(pgFactory));
+        bundle.add(KClientRepo.FromPool, .factory(clientFactory));
         bundle.addDeinitHook(pgDeinit);
     }
 
     pub fn pgDeinit(repo: KEventRepo.FromPool) void {
         repo.pool.deinit();
+    }
+
+    pub fn clientFactory(ev: KEventRepo.FromPool) !KClientRepo.FromPool {
+        return .init(ev.pool);
     }
 
     pub fn pgFactory(alloc: std.mem.Allocator) !KEventRepo.FromPool {
