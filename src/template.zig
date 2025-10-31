@@ -18,6 +18,7 @@ pub const Template = struct {
             std.log.err("Tried to instantiate a non-exsistant template '{s}'", .{name});
             return error.TemplateNotFound;
         };
+
         return .{
             .template = template,
         };
@@ -25,6 +26,15 @@ pub const Template = struct {
 
     pub fn sendResponse(self: *const Template, context: *tk.Context) !void {
         const data = try context.injector.get(Data);
+        if (data.data.value) |v| {
+            switch (v.*) {
+                .object => |_| try (try data.data.root(.object)).put(
+                    "__id",
+                    self.template.name,
+                ),
+                else => {},
+            }
+        }
         return self.sendResponseWithData(context, data.data);
     }
 

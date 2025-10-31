@@ -1,26 +1,17 @@
 <article class="bg-zinc-800 rounded-xl p-4 shadow-xl shadow-zinc-900 relative w-full">
-  <h2 class="text-2xl mb-3">Recent</h2>
-  <table class="w-full mb-3" id="recent-table">
-    <thead>
-      <tr class="sticky top-0 bg-zinc-800/95 backdrop-blur-sm z-2">
-        <th scope="column" class="bg-zinc-700 p-1">User</th>
-        <th scope="column" class="bg-zinc-700 p-1">From</th>
-        <th scope="column" class="bg-zinc-700 p-1">To</th>
-        <th scope="column" class="bg-zinc-700 p-1">Duration</th>
-        <th scope="column" class="bg-zinc-700 p-1">Event</th>
-        <th scope="column" class="bg-zinc-700 p-1">Data</th>
-      </tr>
-    </thead>
-    <tbody hx-get="/api/events/recent" hx-swap="innerHTML" hx-target="this" hx-trigger="every 5s, load">
-      <tr id="recent">
-        <td colspan="3">
-          Loading...
-        </td>
-      </tr>
-    </tbody>
-  </table>
-  <h2 class="text-2xl mb-3">All Events</h2>
-  <form class="filters flex gap-1" id="filters"
+  <h2 class="text-center text-2xl mb-3">Recent</h2>
+  <div class="w-full mb-3" id="recent-table">
+    <div id="recent-container"
+         class="flex gap-1 align-center justify-center w-full min-h-24 h-max max-h-36"
+         hx-get="/api/events/recent"
+         hx-swap="morph:innerHTML"
+         hx-target="this"
+         hx-trigger="every 5s, load">
+      Loading...
+    </div>
+  </div>
+  <h2 class="text-center text-2xl mb-3">All Events</h2>
+  <form class="filters justify-center w-full flex gap-1" id="filters"
         hx-get="/api/events/table"
         hx-target="#events-table"
         hx-trigger="change"

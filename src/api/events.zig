@@ -60,9 +60,7 @@ pub fn @"GET /recent"(
         try obj.put("data", event.properties);
         try events.append(obj);
     }
-    try root.put("index", 0);
-    try root.put("is_at_end", true);
-    return template.Template.init("list_events");
+    return template.Template.init("list_activity");
 }
 
 pub fn @"GET /types"(res: *tk.Response, tdata: template.Data, event_service: *EventService) !template.Template {
@@ -108,6 +106,24 @@ pub fn @"GET /hosts"(res: *tk.Response, tdata: template.Data, event_service: *Ev
     }
     res.headers.add("cache-control", "public, max-age=300");
     return template.Template.init("list_options");
+}
+
+pub fn @"GET /activity_card?"(
+    res: *tk.Response,
+    tdata: template.Data,
+    params: struct { event_type: []const u8 },
+) !template.Template {
+    var instr = metrics.instrumentAllocator(res.arena);
+    const alloc = instr.allocator();
+    var data = tdata.data;
+    _ = try data.object();
+    const tmpl = try std.fmt.allocPrint(
+        alloc,
+        "activity_card_{s}",
+        .{params.event_type},
+    );
+    //    res.headers.add("cache-control", "public, max-age=300");
+    return template.Template.init(tmpl);
 }
 
 pub fn @"GET /"(data: template.Data) !template.Template {
