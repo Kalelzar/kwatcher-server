@@ -25,26 +25,38 @@ pub fn get(self: *const EventService, allocator: std.mem.Allocator, query: model
     return erepo.get(allocator, query);
 }
 
-pub fn recent(self: *const EventService, allocator: std.mem.Allocator) !std.ArrayList(repo.KEvent.KEventRow) {
+pub fn recent(self: *const EventService, allocator: std.mem.Allocator) !std.ArrayList(repo.KEvent.KEventWithClientRow) {
     var erepo = try self.repo_factory.yield();
     defer erepo.deinit();
     return erepo.getRecent(allocator);
 }
 
-pub fn types(self: *const EventService, allocator: std.mem.Allocator) !std.ArrayList([]const u8) {
+pub fn types(
+    self: *const EventService,
+    allocator: std.mem.Allocator,
+    query: models.EventFilters,
+) !std.ArrayList([]const u8) {
     var erepo = try self.repo_factory.yield();
     defer erepo.deinit();
-    return erepo.types(allocator);
+    return erepo.types(allocator, query);
 }
 
-pub fn clients(self: *const EventService, allocator: std.mem.Allocator) !std.ArrayList([]const u8) {
+pub fn clients(
+    self: *const EventService,
+    allocator: std.mem.Allocator,
+    query: models.EventFilters,
+) !std.ArrayList([]const u8) {
     var crepo = try self.client_repo_factory.yield();
     defer crepo.deinit();
-    return crepo.getClients(allocator);
+    return crepo.getClients(allocator, query);
 }
 
-pub fn hosts(self: *const EventService, allocator: std.mem.Allocator) !std.ArrayList([]const u8) {
+pub fn hosts(
+    self: *const EventService,
+    allocator: std.mem.Allocator,
+    query: models.EventFilters,
+) !std.ArrayList([]const u8) {
     var crepo = try self.client_repo_factory.yield();
     defer crepo.deinit();
-    return crepo.getHosts(allocator);
+    return crepo.getHosts(allocator, query);
 }

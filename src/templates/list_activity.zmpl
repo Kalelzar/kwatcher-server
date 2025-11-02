@@ -9,6 +9,11 @@
              user_id: '{{item.user_id}}',
              start_time: {{item.from}},
              end_time: {{item.to}},
+             client: {
+               name: '{{item.client.name}}',
+               version: '{{item.client.version}}',
+               host: '{{item.client.host}}',
+             },
              duration: Temporal.Duration.from({microseconds: {{item.duration}}}),
              duration_string: new Intl.DurationFormat('en', { style: 'narrow' }).format(Temporal.Duration.from({microseconds: {{item.duration}}}).round({smallestUnit: 'seconds', largestUnit: 'year', relativeTo: Temporal.Instant.fromEpochMilliseconds(Math.floor({{item.from}}/1000)).toZonedDateTimeISO(Temporal.Now.timeZoneId())})),
              })">

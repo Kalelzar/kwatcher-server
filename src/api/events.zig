@@ -55,18 +55,28 @@ pub fn @"GET /recent"(
         try obj.put("event_type", event.event_type);
         try obj.put("from", event.start_time);
         try obj.put("to", event.end_time);
-        try obj.put("duration", event.end_time - event.start_time);
+        try obj.put("duration", event.end_time -| event.start_time);
         try obj.put("user_id", event.user_id);
         try obj.put("data", event.properties);
+        const client = try data.object();
+        try client.put("name", event.client_name);
+        try client.put("version", event.client_version);
+        try client.put("host", event.client_host);
+        try obj.put("client", client);
         try events.append(obj);
     }
     return template.Template.init("list_activity");
 }
 
-pub fn @"GET /types"(res: *tk.Response, tdata: template.Data, event_service: *EventService) !template.Template {
+pub fn @"GET /types?"(
+    res: *tk.Response,
+    tdata: template.Data,
+    event_service: *EventService,
+    query: models.EventFilters,
+) !template.Template {
     var instr = metrics.instrumentAllocator(res.arena);
     const alloc = instr.allocator();
-    const rows = try event_service.types(alloc);
+    const rows = try event_service.types(alloc, query);
     var data = tdata.data;
     const root = try data.object();
     const types = try data.array();
@@ -78,10 +88,15 @@ pub fn @"GET /types"(res: *tk.Response, tdata: template.Data, event_service: *Ev
     return template.Template.init("list_options");
 }
 
-pub fn @"GET /clients"(res: *tk.Response, tdata: template.Data, event_service: *EventService) !template.Template {
+pub fn @"GET /clients?"(
+    res: *tk.Response,
+    tdata: template.Data,
+    event_service: *EventService,
+    query: models.EventFilters,
+) !template.Template {
     var instr = metrics.instrumentAllocator(res.arena);
     const alloc = instr.allocator();
-    const rows = try event_service.clients(alloc);
+    const rows = try event_service.clients(alloc, query);
     var data = tdata.data;
     const root = try data.object();
     const clients = try data.array();
@@ -93,10 +108,15 @@ pub fn @"GET /clients"(res: *tk.Response, tdata: template.Data, event_service: *
     return template.Template.init("list_options");
 }
 
-pub fn @"GET /hosts"(res: *tk.Response, tdata: template.Data, event_service: *EventService) !template.Template {
+pub fn @"GET /hosts?"(
+    res: *tk.Response,
+    tdata: template.Data,
+    event_service: *EventService,
+    query: models.EventFilters,
+) !template.Template {
     var instr = metrics.instrumentAllocator(res.arena);
     const alloc = instr.allocator();
-    const rows = try event_service.hosts(alloc);
+    const rows = try event_service.hosts(alloc, query);
     var data = tdata.data;
     const root = try data.object();
     const hosts = try data.array();

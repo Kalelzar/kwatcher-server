@@ -24,6 +24,7 @@ const App = struct {
         tk.logger(.{}, &.{
             kserver.metrics.track(&.{
                 .get("/", tk.static.file("static/index.html")),
+                .get("/static/*", tk.static.dir("static", .{ .index = null })),
                 .get("/metrics", kserver.metrics.route()),
                 kserver.template.templates(&.{
                     .group("/api/system", &.{.router(kserver.api.system)}),
