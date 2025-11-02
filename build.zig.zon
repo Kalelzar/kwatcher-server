@@ -8,16 +8,15 @@
             .url = "git+https://github.com/karlseguin/pg.zig#f930e90b735ebadf28244c7a31e9c442b264b544",
             .hash = "pg-0.0.0-Wp_7gfoJBgDfkQBaWRTwjYcTdNyS8UHRDmMTs4NuSmxY",
         },
-        .tokamak = .{
-            .url = "git+https://github.com/Kalelzar/tokamak.git#8918404de2817dea5228950ec76fb1f7051556a9",
-            .hash = "tokamak-2.0.0-FbnSeWATBgDO9_gq1uMaN3ZxgWj-lW78G7gQXhf97Gcq",
-        },
         .zmpl = .{
             .url = "git+https://github.com/Kalelzar/zmpl.git#6680cd0b64d88483929cc7426bb382ab8a834532",
             .hash = "zmpl-0.0.1-SYFGBvCpAwBMy-Jq3m0JmYDjSUao_nxygGiePASA-SJj",
         },
         .kwatcher_event = .{
             .path = "vendor/kwatcher-event",
+        },
+        .kwatcher_web_utils = .{
+            .path = "vendor/kwatcher-web-utils",
         },
     },
     .paths = .{
