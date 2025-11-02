@@ -1,3 +1,5 @@
+pub const Auth = @import("kwatcher-web-utils").config.Auth;
+
 pub const Config = struct {
     daemon: struct {
         postgre: struct {
@@ -16,4 +18,5 @@ pub const Config = struct {
         hostname: []const u8 = "0.0.0.0",
         port: u16 = 8080,
     } = .{},
+    auth: Auth,
 };

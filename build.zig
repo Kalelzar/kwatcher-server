@@ -104,14 +104,25 @@ pub fn build(b: *std.Build) !void {
     const kwatcher = kw.module("kwatcher");
     const klib = kw.builder.dependency("klib", .{ .target = target, .optimize = optimize }).module("klib");
     const kwatcher_event = kwevent.module("kwatcher_event");
+    const embed: []const []const u8 = &.{
+        "static/index.html",
+    };
+    const kwwu = b.dependency("kwatcher_web_utils", .{
+        .embed = embed,
+        .target = target,
+        .optimize = optimize,
+        .lib = true,
+    });
+    const kwatcher_web_utils = kwwu.module("kwatcher_web_utils");
     // 3rd Party:
     const uuid = kw.builder.dependency("uuid", .{ .target = target, .optimize = optimize }).module("uuid");
     const pg = b.dependency("pg", .{ .target = target, .optimize = optimize }).module("pg");
 
-    const embed: []const []const u8 = &.{
-        "static/index.html",
-    };
-    const tk = b.dependency("tokamak", .{ .embed = embed, .target = target, .optimize = optimize });
+    const tk = kwwu.builder.dependency("tokamak", .{
+        .embed = embed,
+        .target = target,
+        .optimize = optimize,
+    });
     const tokamak = tk.module("tokamak");
     const hz = tk.builder.dependency("httpz", .{ .target = target, .optimize = optimize });
     const httpz = hz.module("httpz");
@@ -123,6 +134,8 @@ pub fn build(b: *std.Build) !void {
     // 1st Party:
     kwatcher_server_library.addImport("kwatcher-event", kwatcher_event);
     kwatcher_server_exe.addImport("kwatcher-event", kwatcher_event);
+    kwatcher_server_library.addImport("kwatcher-web-utils", kwatcher_web_utils);
+    kwatcher_server_exe.addImport("kwatcher-web-utils", kwatcher_web_utils);
     kwatcher_server_library.addImport("klib", klib);
     kwatcher_server_exe.addImport("klib", klib);
     kwatcher_server_library.addImport("tokamak", tokamak);

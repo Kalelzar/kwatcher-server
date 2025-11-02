@@ -4,6 +4,7 @@ const zmpl = @import("zmpl");
 const pg = @import("pg");
 const kwatcher = @import("kwatcher");
 const kserver = @import("kwatcher-server");
+const kw_web = @import("kwatcher-web-utils");
 const KEventRepo = @import("kwatcher-event").repo.KEvent;
 const KClientRepo = @import("kwatcher-event").repo.KClient;
 const Config = @import("config.zig").Config;
@@ -24,10 +25,13 @@ const App = struct {
         tk.logger(.{}, &.{
             kserver.metrics.track(&.{
                 .get("/", tk.static.file("static/index.html")),
+                .get("/static/*", tk.static.dir("static", .{ .index = null })),
                 .get("/metrics", kserver.metrics.route()),
                 kserver.template.templates(&.{
-                    .group("/api/system", &.{.router(kserver.api.system)}),
-                    .group("/api/events", &.{.router(kserver.api.events)}),
+                    .group("/api", &.{kw_web.middleware.authn(&.{
+                        .group("/system", &.{.router(kserver.api.system)}),
+                        .group("/events", &.{.router(kserver.api.events)}),
+                    })}),
                     .get("/openapi.json", tk.swagger.json(.{ .info = .{ .title = "KWatcher Server" } })),
                     .get("/swagger-ui", tk.swagger.ui(.{ .url = "openapi.json" })),
                     .get("/*", notFound),
@@ -41,6 +45,9 @@ const App = struct {
         bundle.add(KEventRepo.FromPool, .factory(pgFactory));
         bundle.add(KClientRepo.FromPool, .factory(clientFactory));
         bundle.addDeinitHook(pgDeinit);
+        kw_web.auth.addToBundle(bundle);
+        kw_web.config.addToBundle(Config, "server", bundle);
+        kw_web.config.addChildToBundle(Config, "auth", bundle);
     }
 
     pub fn pgDeinit(repo: KEventRepo.FromPool) void {
@@ -51,13 +58,7 @@ const App = struct {
         return .init(ev.pool);
     }
 
-    pub fn pgFactory(alloc: std.mem.Allocator) !KEventRepo.FromPool {
-        const config = try kwatcher.config.findConfigFile(
-            Config,
-            alloc,
-            "server",
-        ) orelse return error.ConfigNotFound;
-
+    pub fn pgFactory(alloc: std.mem.Allocator, config: *Config) !KEventRepo.FromPool {
         return .init(try pg.Pool.init(alloc, .{
             .size = config.daemon.postgre.pool_size,
             .connect = .{
@@ -73,13 +74,7 @@ const App = struct {
         }));
     }
 
-    pub fn serverOptionsFactory(allocator: std.mem.Allocator) !tk.ServerOptions {
-        const config = try kwatcher.config.findConfigFile(
-            Config,
-            allocator,
-            "server",
-        ) orelse return error.ConfigNotFound;
-
+    pub fn serverOptionsFactory(config: *Config) !tk.ServerOptions {
         std.log.info("Starting web server on: {s}:{}", .{ config.web.hostname, config.web.port });
 
         return tk.ServerOptions{
@@ -93,19 +88,14 @@ const App = struct {
 
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{ .safety = true }){};
-    defer _ = gpa.deinit();
     {
+        defer _ = gpa.deinit();
         const allocator = gpa.allocator();
 
         var instr_allocator = kserver.metrics.instrumentAllocator(allocator);
         const alloc = instr_allocator.allocator();
         try kserver.metrics.initialize(alloc, .{});
         defer kserver.metrics.deinitialize();
-
-        var instr_page_allocator = kserver.metrics.instrumentAllocator(std.heap.page_allocator);
-        const page_allocator = instr_page_allocator.allocator();
-        var arena = std.heap.ArenaAllocator.init(page_allocator);
-        defer arena.deinit();
 
         const container = try tk.Container.init(alloc, &.{App});
         defer container.deinit();
@@ -130,7 +120,6 @@ pub fn main() !void {
         server_instance = server;
         try server.start();
     }
-    _ = gpa.detectLeaks();
 }
 
 var server_instance: ?*tk.Server = null;
