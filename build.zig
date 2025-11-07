@@ -106,6 +106,8 @@ pub fn build(b: *std.Build) !void {
     const kwatcher_event = kwevent.module("kwatcher_event");
     const embed: []const []const u8 = &.{
         "static/index.html",
+        "static/svg/clear.svg",
+        "static/svg/refresh.svg",
     };
     const kwwu = b.dependency("kwatcher_web_utils", .{
         .embed = embed,

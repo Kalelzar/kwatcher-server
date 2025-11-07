@@ -1,8 +1,8 @@
 <article class="bg-zinc-800 rounded-xl p-4 shadow-xl shadow-zinc-900 relative w-full">
   <h2 class="text-center text-2xl mb-3">Recent</h2>
-  <div class="w-full mb-3" id="recent-table">
+  <div class="w-full mb-3 h-fit" id="recent-table">
     <div id="recent-container"
-         class="flex gap-1 align-center justify-center w-full min-h-24 h-max max-h-36"
+         class="flex flex-wrap gap-1 align-center justify-center w-full min-h-24 h-max"
          hx-get="/api/events/recent"
          hx-swap="morph:innerHTML"
          hx-target="this"
