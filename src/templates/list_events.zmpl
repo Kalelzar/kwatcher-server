@@ -17,6 +17,10 @@
   @else if (std.mem.eql(u8, try item.object.get("event_type").?.coerce([]const u8), "kavita-status"))
   
   @partial list_event_props_kavita(item.data)
+
+  @else if (std.mem.eql(u8, try item.object.get("event_type").?.coerce([]const u8), "window-status"))
+  
+  @partial list_event_props_window(item.data)
   
   @else
   
